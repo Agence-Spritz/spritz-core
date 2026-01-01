@@ -1,0 +1,13 @@
+{
+    "name": "spritz/spritz-core",
+    "description": "Cœur du thème Spritz",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Spritz",
+            "email": "contact@agence-spritz.com"
+        }
+    ],
+    "require": {}
+}
