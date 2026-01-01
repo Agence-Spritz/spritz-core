@@ -2,23 +2,23 @@
 Description: Fichier permettant la création des Custom Post Types.
 Version: 1.0
 Author: Agence Spritz
-Author URI: http://www.agence-spritz.com.com/
+Author URI: http://www.agence-spritz.com/
 License: GPLv2
 */
 
 if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
-
-/************************************************
- *	Produits *
- ************************************************/
-
+/**
+ *	Produits
+ *  Activation dans le thème : add_theme_support('spritz-cpt-produits');
+ */
 function cpt_produits()
 {
+    // On n'enregistre le CPT que si le thème le demande explicitement
+    if (!current_theme_supports('spritz-cpt-produits')) {
+        return;
+    }
 
-    /**
-     * Création d'un Custom Post Type
-     */
     register_post_type(
         'produits',
         array(
