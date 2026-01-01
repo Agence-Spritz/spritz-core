@@ -88,7 +88,7 @@ function spritz_options_page()
 			<h2>Informations générales</h2>
 			<table class="form-table">
 				<tr>
-					<th>Titre général du site</th>
+					<th> Titre général du site</th>
 					<td><input type="text" name="titre_general" value="<?php echo esc_attr(get_option('titre_general')); ?>" class="regular-text"></td>
 				</tr>
 				<tr>
