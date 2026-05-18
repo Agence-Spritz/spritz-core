@@ -149,7 +149,7 @@ if (!function_exists('spritz_auto_excerpt')) {
         if ($cached !== false) return $cached;
 
         $raw = get_post_field('post_content', $post_id);
-        $text = trim(wp_strip_all_tags(strip_shortcodes($raw)));
+        $text = trim(wp_strip_all_tags(preg_replace('/\[[^\]]*\]/', '', $raw)));
 
         if (mb_strlen($text) < 20) {
             $rendered = apply_filters('the_content', $raw);

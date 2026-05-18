@@ -51,6 +51,9 @@ function spritz_register_settings()
 	register_setting('spritz_options', 'org_services', ['sanitize_callback' => 'spritz_sanitize_array']);
 	register_setting('spritz_options', 'org_partners', ['sanitize_callback' => 'spritz_sanitize_array']);
 	register_setting('spritz_options', 'org_locations', ['sanitize_callback' => 'spritz_sanitize_array']);
+
+	/* hook pour options spécifiques au projet */
+	do_action('spritz_extra_register_settings');
 }
 
 function spritz_sanitize_array($val)
@@ -84,6 +87,8 @@ function spritz_options_page()
 		<form method="post" action="options.php">
 			<?php settings_fields('spritz_options'); ?>
 
+			<?php do_action('spritz_options_page_before_general'); ?>
+
 			<!-- informations générales -->
 			<h2>Informations générales</h2>
 			<table class="form-table">
@@ -114,6 +119,8 @@ function spritz_options_page()
 					</td>
 				</tr>
 			</table>
+
+			<?php do_action('spritz_options_page_after_general'); ?>
 
 			<hr>
 
@@ -170,6 +177,8 @@ function spritz_options_page()
 
 			</table>
 
+			<?php do_action('spritz_options_page_after_identity'); ?>
+
 			<hr>
 
 			<!-- réseaux sociaux -->
@@ -182,6 +191,8 @@ function spritz_options_page()
 					</tr>
 				<?php endforeach; ?>
 			</table>
+
+			<?php do_action('spritz_options_page_after_social'); ?>
 
 			<hr>
 
@@ -198,6 +209,8 @@ function spritz_options_page()
 					</div>
 				<?php endforeach; ?>
 			</div>
+
+			<?php do_action('spritz_options_page_after_visuals'); ?>
 
 			<hr>
 
@@ -224,6 +237,8 @@ function spritz_options_page()
 				'lng' => 'text',
 				'openingHours' => 'textarea'
 			], 'Ajouter une localisation'); ?>
+
+			<?php do_action('spritz_options_page_after_jsonld'); ?>
 
 			<p class="submit"><input type="submit" class="button-primary" value="Mettre à jour"></p>
 		</form>
