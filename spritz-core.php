@@ -1,16 +1,28 @@
 <?php
 /*
 Plugin Name: Spritz Core
-Plugin URI: http://www.agence-spritz.com.com/
+Plugin URI: https://github.com/Agence-Spritz/spritz-core
 Description: Plugin permettant la configuration générale du thème ainsi que la création des Custom Post types.
-Version: 5.0.0
+Version: 5.1.0
 Author: Agence Spritz
-Author URI: http://www.agence-spritz.com/
+Author URI: https://www.agence-spritz.com/
 License: GPLv2
 */
 
 if (!defined('ABSPATH')) {
     exit;
+}
+
+// Mises à jour automatiques depuis les releases GitHub (asset spritz-core.zip).
+// Désactivé sur une copie de travail git (dev local, plugin en symlink) : une mise à jour
+// lancée depuis l'admin écraserait les sources du dépôt.
+if (!is_dir(__DIR__ . '/.git')) {
+	require_once __DIR__ . '/lib/plugin-update-checker/plugin-update-checker.php';
+	\YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+		'https://github.com/Agence-Spritz/spritz-core/',
+		__FILE__,
+		'spritz-core'
+	)->getVcsApi()->enableReleaseAssets('/spritz\-core\.zip$/');
 }
 
 // Constantes globales

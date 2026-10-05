@@ -203,7 +203,8 @@ if (!function_exists('spritz_get_template')) {
         $file = $theme_template ?: WP_PLUGIN_DIR . '/' . $plugin_slug . '/templates/' . $template_name;
 
         if (file_exists($file)) {
-            if (!empty($args)) extract($args);
+            // EXTR_SKIP : les variables passées au template ne peuvent pas écraser $file / $plugin_slug
+            if (!empty($args)) extract($args, EXTR_SKIP);
             include($file);
         }
     }
