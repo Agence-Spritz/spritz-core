@@ -1,0 +1,4 @@
+/* Icône Spritz des éléments WPBakery du thème (vc_map : icon => vc-icon-spritz) */
+.vc_element-icon.vc-icon-spritz {
+	background-image: url(icon-spritz.svg) !important;
+}
