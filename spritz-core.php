@@ -3,7 +3,7 @@
 Plugin Name: Spritz Core
 Plugin URI: https://github.com/Agence-Spritz/spritz-core
 Description: Plugin permettant la configuration générale du thème ainsi que la création des Custom Post types.
-Version: 5.2.0
+Version: 5.3.0
 Author: Agence Spritz
 Author URI: https://www.agence-spritz.com/
 License: GPLv2
@@ -28,7 +28,7 @@ if (!is_dir(__DIR__ . '/.git')) {
 // Constantes globales
 define('SPRITZ_PLUGIN_ABSPATH', dirname(__FILE__));
 define('SPRITZ_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('SPRITZ_CORE_VERSION', '5.2.0');
+define('SPRITZ_CORE_VERSION', '5.3.0');
 
 $theme = wp_get_theme();
 define('SP_THEMENAME', $theme['Name']);

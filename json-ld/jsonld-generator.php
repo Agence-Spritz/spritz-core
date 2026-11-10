@@ -169,6 +169,13 @@ add_action('wp_head', function () {
     ------------------------------------------------------------- */
     $graph = array_merge($lbs, $service_nodes);
 
+    /**
+     * Filtre spritz_jsonld_graph : nœuds du graphe (LocalBusiness, catalogue de services) avant nettoyage et sortie.
+     * Sans fonction branchée, la sortie est inchangée. Ex. : un site dont la raison sociale (org_legal_name) diffère de
+     * la marque peut mettre la marque en « name » et la raison sociale en « legalName ».
+     */
+    $graph = (array) apply_filters('spritz_jsonld_graph', $graph);
+
     $clean = function ($node) use (&$clean) {
         if (is_array($node)) {
             $out = [];
