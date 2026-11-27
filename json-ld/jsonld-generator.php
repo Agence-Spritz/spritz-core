@@ -3,20 +3,50 @@
 /**
  * Générateur JSON-LD compatible Yoast, pour le socle Spritz.
  * Génère LocalBusiness, OfferCatalog (services), et memberOf (adhésions).
+ * L'entreprise (LocalBusiness) renvoie à la société #organization : celle de Yoast quand Yoast la décrit
+ * (Réglages > Représentation du site : société), sinon un nœud Organization produit ici (la référence ne
+ * pointe jamais dans le vide).
  */
 
 if (!defined('ABSPATH')) exit;
+
+/**
+ * Téléphone au format international pour schema.org : « +32 (0) 67 88 36 32 » → « +32 67 88 36 32 » ;
+ * un numéro national (« 067 88 36 32 ») prend l'indicatif du pays (option « pays », code ISO).
+ */
+function spritz_jsonld_telephone(string $tel, string $pays = ''): string
+{
+    $tel = trim(preg_replace('/\s+/', ' ', $tel));
+    if ($tel === '') return '';
+    $tel = trim(preg_replace('/\s*\(\s*0\s*\)\s*/', ' ', $tel)); // « (0) » : ne se compose pas depuis l'étranger
+    if (str_starts_with($tel, '00')) {
+        $tel = '+' . substr($tel, 2);
+    }
+    if (!str_starts_with($tel, '+')) {
+        $indicatifs = ['BE' => '32', 'FR' => '33', 'LU' => '352', 'CH' => '41', 'NL' => '31', 'DE' => '49'];
+        $code = $indicatifs[strtoupper(trim($pays))] ?? '';
+        if ($code && str_starts_with($tel, '0')) {
+            $tel = '+' . $code . ' ' . ltrim(substr($tel, 1));
+        }
+    }
+    return trim(preg_replace('/\s+/', ' ', $tel));
+}
 
 add_action('wp_head', function () {
 
     /* -------------------------------------------------------------
        DÉTECTION YOAST ET ID ORGANIZATION
     ------------------------------------------------------------- */
-    if (defined('WPSEO_VERSION')) {
-        $org_id = home_url('#organization'); // réutilise celui de Yoast
-    } else {
-        $org_id = home_url('#organization-spritz'); // fallback si Yoast absent
-    }
+    $org_id = home_url('#organization');
+    $yoast_societe = defined('WPSEO_VERSION') && class_exists('WPSEO_Options')
+        && WPSEO_Options::get('company_or_person') === 'company' && WPSEO_Options::get('company_name');
+
+    // réseaux sociaux des réglages du site (sameAs)
+    $reseaux = array_values(array_filter(array_map(
+        fn($cle) => esc_url_raw((string) get_option($cle)),
+        ['facebook', 'twitter', 'instagram', 'linkedin', 'youtube', 'tiktok']
+    )));
+    $telephone = spritz_jsonld_telephone((string) get_option('tel'), (string) get_option('pays'));
 
     /* -------------------------------------------------------------
        COORDONNÉES PRINCIPALES
@@ -82,8 +112,7 @@ add_action('wp_head', function () {
                             'name' => $srv
                         ]
                     ];
-                }, $list),
-                'publisher' => ['@id' => home_url('#organization')]
+                }, $list)
             ];
         }
     }
@@ -139,9 +168,12 @@ add_action('wp_head', function () {
                 'name' => $org_name,
                 'address' => $addr ?: null,
                 'geo' => $geoLoc,
-                'telephone' => get_option('tel') ?: null,
+                'url' => home_url('/'),
+                'telephone' => $telephone ?: null,
                 'email'     => get_option('email') ?: null,
                 'openingHours' => $open ?: null,
+                'sameAs' => $reseaux ?: null,
+                'hasOfferCatalog' => $service_nodes ? ['@id' => home_url('#services')] : null,
                 'memberOf' => $memberOf ?: null,
                 'parentOrganization' => ['@id' => $org_id],
                 'knowsAbout' => $list_knows ?: null
@@ -155,9 +187,12 @@ add_action('wp_head', function () {
             'name' => $org_name,
             'address' => $adresse ?: null,
             'geo' => $geo,
-            'telephone' => get_option('tel') ?: null,
+            'url' => home_url('/'),
+            'telephone' => $telephone ?: null,
             'email'     => get_option('email') ?: null,
             'openingHours' => $opening ?: null,
+            'sameAs' => $reseaux ?: null,
+            'hasOfferCatalog' => $service_nodes ? ['@id' => home_url('#services')] : null,
             'memberOf' => $memberOf ?: null,
             'parentOrganization' => ['@id' => $org_id],
             'knowsAbout' => $list_knows ?: null
@@ -167,10 +202,22 @@ add_action('wp_head', function () {
     /* -------------------------------------------------------------
        NETTOYAGE & SORTIE JSON-LD
     ------------------------------------------------------------- */
-    $graph = array_merge($lbs, $service_nodes);
+    // Société : sans Yoast pour la décrire, produite ici (même @id que celle de Yoast)
+    $organisation = $yoast_societe ? [] : [[
+        '@type'     => 'Organization',
+        '@id'       => $org_id,
+        'name'      => get_bloginfo('name'),
+        'legalName' => get_option('org_legal_name') ?: null,
+        'url'       => home_url('/'),
+        'logo'      => get_option('logo') ? esc_url_raw(get_option('logo')) : null,
+        'sameAs'    => $reseaux ?: null,
+    ]];
+
+    $graph = array_merge($organisation, $lbs, $service_nodes);
 
     /**
-     * Filtre spritz_jsonld_graph : nœuds du graphe (LocalBusiness, catalogue de services) avant nettoyage et sortie.
+     * Filtre spritz_jsonld_graph : nœuds du graphe (Organization si Yoast ne décrit pas la société, LocalBusiness,
+     * catalogue de services) avant nettoyage et sortie.
      * Sans fonction branchée, la sortie est inchangée. Ex. : un site dont la raison sociale (org_legal_name) diffère de
      * la marque peut mettre la marque en « name » et la raison sociale en « legalName ».
      */
