@@ -14,6 +14,7 @@ if (!defined('ABSPATH')) exit;
  * Téléphone au format international pour schema.org : « +32 (0) 67 88 36 32 » → « +32 67 88 36 32 » ;
  * un numéro national (« 067 88 36 32 ») prend l'indicatif du pays (option « pays », code ISO).
  */
+if (!function_exists('spritz_jsonld_telephone')) :
 function spritz_jsonld_telephone(string $tel, string $pays = ''): string
 {
     $tel = trim(preg_replace('/\s+/', ' ', $tel));
@@ -31,6 +32,7 @@ function spritz_jsonld_telephone(string $tel, string $pays = ''): string
     }
     return trim(preg_replace('/\s+/', ' ', $tel));
 }
+endif;
 
 add_action('wp_head', function () {
 
@@ -38,14 +40,17 @@ add_action('wp_head', function () {
        DÉTECTION YOAST ET ID ORGANIZATION
     ------------------------------------------------------------- */
     $org_id = home_url('#organization');
+    // même condition que Yoast pour produire sa société : « société », avec un nom et un logo
     $yoast_societe = defined('WPSEO_VERSION') && class_exists('WPSEO_Options')
-        && WPSEO_Options::get('company_or_person') === 'company' && WPSEO_Options::get('company_name');
+        && WPSEO_Options::get('company_or_person') === 'company' && WPSEO_Options::get('company_name')
+        && (int) WPSEO_Options::get('company_logo_id') > 0;
 
     // réseaux sociaux des réglages du site (sameAs)
+    // seulement des adresses complètes (https://…) : une valeur bidon (« # », « facebook.com ») est ignorée
     $reseaux = array_values(array_filter(array_map(
-        fn($cle) => esc_url_raw((string) get_option($cle)),
+        fn($cle) => esc_url_raw(trim((string) get_option($cle)), ['http', 'https']),
         ['facebook', 'twitter', 'instagram', 'linkedin', 'youtube', 'tiktok']
-    )));
+    ), fn($url) => (bool) preg_match('#^https?://[^/\s]+\.[^/\s]+#i', $url)));
     $telephone = spritz_jsonld_telephone((string) get_option('tel'), (string) get_option('pays'));
 
     /* -------------------------------------------------------------
